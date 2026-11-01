@@ -9,6 +9,7 @@ project:
     - report.qmd
     - slides.qmd
     - dashboard.qmd
+    - whitepaper.qmd
     - posts/*/index.qmd
 
 execute:
@@ -38,3 +39,5 @@ website:
             href: report.epub
           - text: "Slides (PowerPoint)"
             href: slides.pptx
+          - text: "White paper (PDF)"
+            href: whitepaper.pdf
