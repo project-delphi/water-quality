@@ -1,68 +1,50 @@
 ---
-title: "Exploring Colombian municipal water data, 2010–2023"
-format: html
+title: "Exploring Colombian municipal water data"
+format:
+  html:
+    embed-resources: true
+jupyter: python3
 execute:
-  echo: false
+  echo: true
 ---
+
+Data: `data/water_municipal.csv` (one row = municipality x zone x year, 2010-2023).
+IRCA here is **utility-supplied ("prestadores") IRCA** from INS open data, not INS's national total.
 
 ```{python}
 import pandas as pd
-import matplotlib.pyplot as plt
-from IPython.display import Markdown
-
-df = pd.read_csv("data/water_municipal.csv", dtype={"divipola": str, "dpto_code": str})
-n_rows, n_cols = df.shape
+df = pd.read_csv("data/water_municipal.csv", dtype={"divipola": str})
+print(f"{df.shape[0]:,} rows x {df.shape[1]} columns")
+df.dtypes.to_frame("dtype").T
 ```
 
-One row is a municipality × zone (urban/rural) × year. The table has
-`{python} f"{n_rows:,}"` rows and `{python} n_cols` columns, covering
-`{python} df["divipola"].nunique()` DIVIPOLA codes from `{python} int(df["year"].min())`
-to `{python} int(df["year"].max())`. IRCA throughout is the **utility-supplied
-(prestadores) IRCA** from INS open data (datos.gov.co `nxt2-39c3`).
-
-## Missing values by zone
+## Missing values (%) per column, by zone
 
 ```{python}
-#| label: tbl-missing
-#| tbl-cap: "Percentage of rows with a missing value, by column and zone (all years)."
-miss = (df.drop(columns=["zone"]).isna().groupby(df["zone"]).mean().T * 100).round(1)
-miss = miss[["urban", "rural"]]
-miss.index.name = "column"
-Markdown(miss.to_markdown())
+miss = df.drop(columns="zone").isna().groupby(df["zone"]).mean().mul(100).round(1).T
+miss
 ```
 
-## IRCA by risk band and zone
+## IRCA bands (Resolución 2115 de 2007, art. 15), by zone
 
-Bands from Resolución 2115 de 2007, art. 15: 0–5 no risk, 5.1–14 low, 14.1–35 medium,
-35.1–80 high, 80.1–100 unfit.
+Counts of rows with a utility-supplied IRCA value.
 
 ```{python}
-#| label: tbl-bands
-#| tbl-cap: "Number of rows by utility-supplied (prestadores) IRCA band and zone, 2010–2023."
-bands = ["No risk", "Low", "Medium", "High", "Unfit"]
-df["irca_band"] = pd.cut(df["irca"], [-0.001, 5, 14, 35, 80, 100], labels=bands)
-counts = pd.crosstab(df["irca_band"].cat.add_categories("No IRCA").fillna("No IRCA"), df["zone"])
-counts = counts.reindex(bands + ["No IRCA"])[["urban", "rural"]]
-counts.index.name = "IRCA band"
-Markdown(counts.to_markdown())
+bins = [-0.001, 5, 14, 35, 80, 100]
+labels = ["no risk (0-5)", "low (5.1-14)", "medium (14.1-35)", "high (35.1-80)", "inviable (80.1-100)"]
+d = df.dropna(subset=["irca"]).copy()
+d["band"] = pd.cut(d["irca"], bins=bins, labels=labels)
+pd.crosstab(d["band"], d["zone"], margins=True)
 ```
 
-## Median IRCA by year and zone
+## Median IRCA (utility-supplied) by year and zone
 
 ```{python}
-#| label: fig-median
-#| fig-cap: "Median utility-supplied (prestadores) IRCA by year and zone, 2010–2023 (rows with an IRCA value)."
-#| fig-alt: "Line chart of median IRCA by year for urban and rural zones; the rural line is far above the urban line in every year."
-med = df.groupby(["year", "zone"])["irca"].median().unstack()[["urban", "rural"]]
-ax = med.plot(marker="o", figsize=(7, 3.5))
-ax.set_ylabel("Median IRCA (prestadores, 0–100)")
-ax.set_xlabel("")
-plt.tight_layout()
-plt.show()
+med = df.pivot_table(index="year", columns="zone", values="irca", aggfunc="median").round(1)
+med
 ```
 
 ```{python}
-#| label: tbl-median
-#| tbl-cap: "Median utility-supplied (prestadores) IRCA by year and zone."
-Markdown(med.round(1).to_markdown())
+ax = med.plot(marker="o", title="Median IRCA (utility-supplied, INS open data) by year and zone")
+ax.set_ylabel("median IRCA (0-100)")
 ```

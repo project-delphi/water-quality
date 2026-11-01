@@ -1,43 +1,50 @@
 project:
   type: website
   execute-dir: project
-  pre-render: scripts/analysis.py
+  pre-render: uv run python scripts/analysis.py
   render:
     - index.qmd
+    - posts/four-kinds.qmd
     - explore.qmd
     - clusters.qmd
     - report.qmd
     - slides.qmd
     - dashboard.qmd
     - whitepaper.qmd
-    - posts/*/index.qmd
 
 execute:
   freeze: false
+  cache: false
 
 website:
-  title: "Colombian municipal water quality"
+  title: "Colombian water safety"
   navbar:
     left:
-      - text: Explore
-        href: explore.qmd
-      - text: Clusters
-        href: clusters.qmd
-      - text: Report
-        href: report.qmd
-      - text: Slides
-        href: slides.qmd
-      - text: Dashboard
-        href: dashboard.qmd
+      - href: index.qmd
+        text: Home
+      - href: explore.qmd
+        text: Explore
+      - href: clusters.qmd
+        text: Clusters
+      - href: report.qmd
+        text: Report
+      - href: slides.qmd
+        text: Slides
+      - href: dashboard.qmd
+        text: Dashboard
       - text: Downloads
         menu:
-          - text: "Report (Word)"
-            href: report.docx
-          - text: "Report (PDF)"
-            href: report.pdf
-          - text: "Report (ePub)"
-            href: report.epub
-          - text: "Slides (PowerPoint)"
-            href: slides.pptx
-          - text: "White paper (PDF)"
-            href: whitepaper.pdf
+          - href: report.docx
+            text: Report (Word)
+          - href: report.pdf
+            text: Report (PDF)
+          - href: report.epub
+            text: Report (ePub)
+          - href: slides.pptx
+            text: Slides (PowerPoint)
+          - href: whitepaper.pdf
+            text: White paper (PDF)
+
+format:
+  html:
+    theme: cosmo

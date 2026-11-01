@@ -1,113 +1,207 @@
 ---
-title: "Water-quality dashboard"
-format: dashboard
-execute:
-  echo: false
+title: "Colombian water safety dashboard"
+format:
+  dashboard:
+    orientation: rows
+    scrolling: false
+jupyter: python3
 ---
 
 ```{python}
+#| context: setup
 import json
-
+import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
-from itables import show
+from itables import show, init_notebook_mode
 
-BANDS = ["No risk", "Low", "Medium", "High", "Unfit"]
-# Light to dark: no risk palest, unfit darkest.
-BAND_COLORS = ["#fde0c5", "#facba6", "#f59e72", "#d45d2b", "#7f2704"]
+init_notebook_mode(all_interactive=False)
 
-clusters = pd.read_parquet("outputs/clusters.parquet")
-profiles = pd.read_csv("outputs/cluster_profiles.csv").set_index("cluster")
-
-# GeoJSON follows RFC 7946 (exterior rings counter-clockwise); Plotly expects the
-# opposite winding, so reverse every ring in memory (data/ stays unchanged).
-geo = json.load(open("data/municipios.geojson"))
-for f in geo["features"]:
-    g = f["geometry"]
-    polys = [g["coordinates"]] if g["type"] == "Polygon" else g["coordinates"]
-    for poly in polys:
-        for i, ring in enumerate(poly):
-            poly[i] = ring[::-1]
-codes = [f["properties"]["divipola"] for f in geo["features"]]
-names = {f["properties"]["divipola"]: f"{f['properties']['municipio'].title()}, "
-         f"{f['properties']['departamento'].title()}" for f in geo["features"]}
-
-urban = clusters[clusters["zone"] == "urban"]
+df = pd.read_parquet("outputs/clusters.parquet")
+urban = df[df["zone"] == "urban"].copy()
+bands = ["No risk", "Low", "Medium", "High", "Unfit"]
+urban["band_i"] = urban["irca_band"].astype(str).map({b: i for i, b in enumerate(bands)})
 years = sorted(urban["year"].unique())
 
+geo = json.load(open("data/municipios.geojson"))
 
-def band_z(year):
-    """Band index (0 = no risk … 4 = unfit) for every polygon; None = no value."""
-    b = urban[urban["year"] == year].set_index("divipola")["irca_band"]
-    return [BANDS.index(b[c]) if c in b.index else None for c in codes]
+def reverse_rings(coords):
+    # RFC 7946 exterior rings run counter-clockwise; Plotly expects the opposite.
+    if isinstance(coords[0][0], (int, float)):
+        return coords[::-1]
+    return [reverse_rings(c) for c in coords]
 
+def fix(geom):
+    if geom["type"] == "Polygon":
+        geom["coordinates"] = [r[::-1] for r in geom["coordinates"]]
+    elif geom["type"] == "MultiPolygon":
+        geom["coordinates"] = [[r[::-1] for r in poly] for poly in geom["coordinates"]]
+    return geom
 
-n = len(BANDS)
-colorscale = []
-for i, c in enumerate(BAND_COLORS):
-    colorscale += [[i / n, c], [(i + 1) / n, c]]
-hover = [names[c] for c in codes]
+for f in geo["features"]:
+    f["geometry"] = fix(f["geometry"])
+
+# light-to-dark sequential colours for no risk -> unfit
+colors = ["#fff7bc", "#fec44f", "#fe9929", "#d95f0e", "#7f2704"]
+n = len(bands)
+scale = []
+for i, c in enumerate(colors):
+    scale += [[i / n, c], [(i + 1) / n, c]]
+```
+
+# Map
+
+## Row
+
+### Column {width=70%}
+
+```{python}
+#| title: "IRCA band of urban zones by year (utility-supplied, INS open data)"
+def trace(y):
+    d = urban[urban["year"] == y]
+    return d
+d0 = trace(years[0])
+fig = go.Figure(go.Choropleth(
+    geojson=geo, featureidkey="properties.divipola",
+    locations=d0["divipola"], z=d0["band_i"], zmin=-0.5, zmax=n - 0.5,
+    colorscale=scale, marker_line_width=0.1, marker_line_color="#555",
+    text=d0["municipio"] + ": " + d0["irca_band"].astype(str),
+    hovertemplate="%{text}<extra></extra>",
+    colorbar=dict(title="IRCA band", tickmode="array", tickvals=list(range(n)),
+                  ticktext=bands, len=0.8, thickness=14),
+))
+fig.frames = [go.Frame(name=str(y), data=[go.Choropleth(
+    locations=trace(y)["divipola"], z=trace(y)["band_i"],
+    text=trace(y)["municipio"] + ": " + trace(y)["irca_band"].astype(str))]) for y in years]
+fig.update_geos(fitbounds="locations", visible=False)
+fig.update_layout(
+    margin=dict(l=0, r=0, t=0, b=0), height=520,
+    sliders=[dict(active=0, currentvalue=dict(prefix="Year: "),
+                  steps=[dict(method="animate", label=str(y),
+                              args=[[str(y)], dict(mode="immediate", frame=dict(duration=0, redraw=True))])
+                         for y in years])],
+)
+fig
+```
+
+### Column {width=30%}
+
+```{python}
+#| title: "How to read it"
+from IPython.display import Markdown
+Markdown("""
+- One colour per **IRCA band** (Resolucion 2115 de 2007), from no risk (light) to unfit (dark).
+- IRCA is **utility-supplied ("prestadores")**, from INS open data; grey = no value.
+- Urban zones of municipalities with an IRCA value, 2016-2023.
+- Department capitals' coverage was filled from municipal totals where needed.
+- Descriptive only; not a causal claim.
+""")
+```
+
+# Table
+
+```{python}
+#| title: "Clustered rows (outputs/clusters.parquet)"
+show(df, maxBytes=0, layout={"topStart": "search"})
+```
+
+# 🧬 Kinds
+
+```{python}
+#| context: setup
+import plotly.express as px
+prof = pd.read_csv("outputs/cluster_profiles.csv").set_index("cluster")
+oy = pd.read_csv("outputs/outcomes_by_year.csv")
+rho = pd.read_csv("outputs/irca_infant.csv").set_index("cluster")
+ks = pd.read_csv("outputs/k_selection.csv")
+cname = prof["name"]
+ccolor = {cname[c]: prof.loc[c, "color"] for c in prof.index}
+zc = [c for c in prof.columns if c.startswith("z_")]
 ```
 
 ## Row
 
 ```{python}
-#| title: "Urban zones: utility-supplied (prestadores) IRCA band, by year"
-base = go.Choropleth(geojson=geo, locations=codes, z=[0] * len(codes),
-                     featureidkey="properties.divipola",
-                     colorscale=[[0, "#d9d9d9"], [1, "#d9d9d9"]], showscale=False,
-                     marker_line_width=0.2, marker_line_color="white",
-                     hoverinfo="skip")
-first = go.Choropleth(
-    geojson=geo, locations=codes, z=band_z(years[-1]), featureidkey="properties.divipola",
-    zmin=-0.5, zmax=n - 0.5, colorscale=colorscale, marker_line_width=0.2,
-    marker_line_color="white", text=hover,
-    hovertemplate="%{text}<br>IRCA band: %{customdata}<extra></extra>",
-    customdata=[BANDS[z] if z is not None else "no data" for z in band_z(years[-1])],
-    colorbar=dict(title="IRCA band", tickvals=list(range(n)), ticktext=BANDS, len=0.8))
-fig = go.Figure(data=[base, first])
-# Frames update only z (and the hover label) of the coloured trace, never the geometry.
-fig.frames = [go.Frame(name=str(y), traces=[1],
-                       data=[go.Choropleth(z=band_z(y), customdata=[
-                           BANDS[z] if z is not None else "no data" for z in band_z(y)])])
-              for y in years]
-fig = fig.update_layout(
-    sliders=[dict(active=len(years) - 1, currentvalue=dict(prefix="Year: "),
-                  steps=[dict(label=str(y), method="animate",
-                              args=[[str(y)], dict(mode="immediate", frame=dict(duration=0, redraw=True),
-                                                   transition=dict(duration=0))])
-                         for y in years])],
-    geo=dict(fitbounds="locations", visible=False),
-    margin=dict(l=0, r=0, t=0, b=0))
+#| title: "Mean z-score of each profile feature by cluster (within year; blue below, red above)"
+Z = prof[zc].copy(); Z.columns = [c[2:] for c in zc]; Z.index = [cname[c] for c in Z.index]
+fig = px.imshow(Z.T, color_continuous_scale="RdBu_r", zmin=-2, zmax=2, aspect="auto",
+                text_auto=".1f", labels=dict(color="mean z"))
+fig.update_layout(margin=dict(l=0, r=0, t=0, b=0), height=430)
+fig.update_xaxes(tickfont_size=10)
+fig
+```
+
+## Row
+
+Clusters use profile features only (IRCA is utility-supplied, INS open data). Descriptive, not causal.
+
+# 🎯 Outcomes
+
+## Row
+
+```{python}
+#| title: "Median infant mortality (deaths per 1,000 live births) by year and cluster"
+def line(outcome, unit):
+    d = oy[oy["outcome"] == outcome].copy()
+    d["cluster_name"] = d["cluster"].map(cname)
+    full = pd.MultiIndex.from_product([sorted(d["cluster_name"].unique()), range(2016, 2024)],
+                                      names=["cluster_name", "year"])
+    d = d.set_index(["cluster_name", "year"]).reindex(full).reset_index()  # gaps stay NaN
+    fig = px.line(d, x="year", y="median", color="cluster_name", markers=True,
+                  color_discrete_map=ccolor, labels=dict(median=unit, cluster_name="cluster"))
+    fig.update_layout(margin=dict(l=0, r=0, t=0, b=0), height=300, legend=dict(orientation="h", y=-0.3))
+    return fig
+line("infant_mortality", "per 1,000 live births")
+```
+
+```{python}
+#| title: "Median Saber 11 global score (0-500) by year and cluster"
+line("saber11_mean", "points (0-500)")
+```
+
+## Row
+
+```{python}
+#| title: "Median school dropout rate (%) by year and cluster"
+line("dropout_rate", "% (official sector)")
+```
+
+```{python}
+#| title: "Spearman rho of IRCA vs infant mortality within each cluster"
+r = rho.reset_index(); r["cluster"] = r["cluster"].map(cname)
+fig = px.bar(r, x="cluster", y="spearman_rho", color="cluster", color_discrete_map=ccolor,
+             text=r["spearman_rho"].round(2), labels=dict(spearman_rho="Spearman rho"))
+fig.update_layout(margin=dict(l=0, r=0, t=0, b=0), height=300, showlegend=False)
+fig
+```
+
+## Row
+
+Descriptive, not causal: association within clusters is weak and says nothing about the effect of water quality.
+Gaps are years a source does not cover; infant mortality changes method in 2017.
+
+# 📐 Method
+
+## Row
+
+```{python}
+#| title: "Inertia by k (elbow)"
+fig = px.line(ks, x="k", y="inertia", markers=True)
+fig.add_vline(x=int(prof.shape[0]), line_dash="dot")
+fig.update_layout(margin=dict(l=0, r=0, t=0, b=0), height=330)
 fig
 ```
 
 ```{python}
-#| title: "The four kinds of municipal zone"
-#| padding: 0
-t = profiles[["name", "rows", "municipalities", "irca_median"]].rename(
-    columns={"name": "Kind", "rows": "Zone-years", "municipalities": "Municipalities",
-             "irca_median": "Median IRCA (prestadores)"})
-show(t)
+#| title: "Mean silhouette by k"
+fig = px.line(ks, x="k", y="silhouette", markers=True)
+fig.add_vline(x=int(prof.shape[0]), line_dash="dot")
+fig.update_layout(margin=dict(l=0, r=0, t=0, b=0), height=330)
+fig
 ```
 
 ## Row
 
-```{python}
-#| title: "Clustered zone-years, 2016–2023 (outputs/clusters.parquet)"
-cols = ["divipola", "municipio", "departamento", "zone", "year", "cluster", "irca",
-        "irca_band", "water_coverage", "sewer_coverage", "ipm", "infant_mortality",
-        "saber11_mean", "dropout_rate"]
-table = clusters[cols].copy()
-table["municipio"] = table["municipio"].str.title()
-table["departamento"] = table["departamento"].str.title()
-table["irca_band"] = table["irca_band"].astype(str)
-show(table, classes="display compact", pageLength=10, scrollX=True, maxBytes=0)
-```
-
-::: {.card title="About"}
-IRCA is the utility-supplied (prestadores) IRCA from INS open data (datos.gov.co
-`nxt2-39c3`); bands from Resolución 2115 de 2007. Grey: no value or not clustered.
-Outcomes describe the kinds and were never used to form them; differences are descriptive
-and do not establish causal effects of water quality.
-:::
+k = 4 (dotted line): the 5th cluster cuts inertia by only about 7%, and the silhouette at k = 4
+is within 0.01 of the best k >= 3. Clustering uses nine profile features, standardised within
+year; outcomes only describe the clusters. All comparisons are descriptive, not causal.

@@ -1,118 +1,145 @@
 ---
-title: "Kinds of municipal zone in Colombia: drinking-water risk, services and outcomes"
-subtitle: "A descriptive cluster analysis, 2016–2023"
-author: "Water-quality workshop project"
-date: today
+title: "Water safety profiles and infant mortality in Colombian municipalities, 2016-2023"
+author: "Water-quality workshop"
 abstract: |
-  We cluster Colombian municipal zones (urban and rural) by utility-supplied drinking-water
-  risk, service coverage and context with k-means, and describe how infant mortality,
-  Saber 11 scores and school dropout differ between the resulting kinds. Outcomes are never
-  used to form the clusters, and all comparisons are descriptive, not causal.
-bibliography: references.bib
+  We describe how Colombian municipalities group by drinking-water safety and context,
+  using real public data. K-means on nine standardised profile features, including the
+  utility-supplied IRCA, finds four clusters. Infant mortality, Saber 11 scores and school
+  dropout are used only to describe the clusters, never to form them. Within clusters the
+  association between IRCA and infant mortality is weak. All comparisons are descriptive
+  and do not establish a causal effect of water safety.
 format:
   typst:
     papersize: a4
     mainfont: "New Computer Modern"
-    section-numbering: "1.1"
-    bibliographystyle: ieee
+    fig-format: svg
+    section-numbering: "1."
+    toc: false
+    include-in-header:
+      - text: |
+          #set bibliography(title: [References])
+bibliography: references.bib
+jupyter: python3
 execute:
   echo: false
+  warning: false
 ---
 
 ```{python}
 import json
-
-import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
-from IPython.display import Markdown
-
-s = json.load(open("outputs/summary.json"))
-profiles = pd.read_csv("outputs/cluster_profiles.csv").set_index("cluster")
+import matplotlib.pyplot as plt
+prof = pd.read_csv("outputs/cluster_profiles.csv").set_index("cluster")
+oy = pd.read_csv("outputs/outcomes_by_year.csv")
+bins = pd.read_csv("outputs/irca_infant_bins.csv")
 rho = pd.read_csv("outputs/irca_infant.csv").set_index("cluster")
-k = s["k"]
-names = profiles["name"].to_dict()
-features = ["irca", "water_coverage", "sewer_coverage", "ipm", "rural_share", "altitude_m",
-            "rainfall_mm", "mdm", "log_sgp_water_pc"]
-labels = ["IRCA", "Piped water", "Sewer", "Poverty", "Rural share", "Altitude", "Rainfall",
-          "MDM", "log SGP / person"]
+ks = pd.read_csv("outputs/k_selection.csv")
+S = json.load(open("outputs/summary.json"))
+names = prof["name"]
 ```
 
 # Introduction
 
-Unsafe drinking water remains a public-health concern in rural Colombia. We ask which
-kinds of municipal zone exist in terms of water risk, services and context, and how health
-and education outcomes differ between them. Water risk is the utility-supplied
-("prestadores") IRCA published by INS [@ins_irca], scored and banded under Resolución 2115
-de 2007 [@res2115].
+Safe drinking water is a precondition for child health, yet water safety varies widely
+across Colombian municipalities and between urban and rural zones. The national
+surveillance index IRCA (*Índice de Riesgo de la Calidad del Agua*) runs from 0 (no risk) to
+100 (unfit) and is classified into bands by Resolución 2115 de 2007 [@res2115]. The open
+INS table used here reports the **utility-supplied ("prestadores") IRCA** [@ins_irca], not
+INS's national total. We ask how municipalities group by water safety and context, and how
+outcomes look in each group.
 
 # Methods
 
-## Data
+The unit of analysis is a municipality x zone (urban or rural) x year row, 2016-2023, built
+from public sources [@ins_irca; @terridata; @dane; @icfes; @men; @funk2026; @chirps3data; @srtm2013].
+We keep rows of municipalities with an IRCA value (`{python} f"{S['kept']:,}"` rows,
+`{python} f"{S['municipalities']:,}"` municipalities). For department capitals, which have no
+urban/rural coverage split, urban coverage is filled from the municipal total
+(`{python} S['capital_urban_rows_filled_from_total']` flagged rows).
 
-The unit is a municipality's urban or rural zone in one year. Features come from INS
-[@ins_irca], DNP TerriData [@terridata], DANE [@dane_divipola; @dane_pop; @dane_mgn],
-CHIRPS rainfall [@funk2026; @funk2015; @chirps3data] and SRTM altitude [@srtm]; outcomes
-from TerriData (infant mortality), ICFES [@icfes] and MEN [@men]. We keep
-`{python} f"{s['kept']:,}"` municipality zone-years with an IRCA value, 2016–2023.
-
-## Standardisation and clustering
-
-Each feature $x_f$ is standardised within its year $t$,
+Each of nine profile features $x_{ij}$ is standardised within year,
 $$
-z_{if} = \frac{x_{if} - \bar{x}_{f,t}}{s_{f,t}},
+z_{ij} = \frac{x_{ij} - \bar{x}_{j,t(i)}}{s_{j,t(i)}},
 $$ {#eq-z}
-and k-means [@lloyd1982] chooses centres $m_c$ that minimise the within-cluster sum of
-squares
+
+where $\bar{x}_{j,t(i)}$ and $s_{j,t(i)}$ are the mean and standard deviation of feature $j$
+in the year $t(i)$ of row $i$. K-means [@lloyd1982] minimises the within-cluster sum of squares
+
 $$
-W = \sum_{c=1}^{k} \sum_{i \in C_c} \lVert z_i - m_c \rVert^2 .
+W = \sum_{c=1}^{k} \sum_{i \in C_c} \lVert z_i - m_c \rVert^2 ,
 $$ {#eq-kmeans}
-We fit @eq-kmeans for $k = 2, \dots, 8$ with 20 starts and choose $k$ by the elbow of $W$,
-checked with the mean silhouette [@rousseeuw1987]
+
+with $m_c$ the centroid of cluster $C_c$. We choose $k$ by the elbow of @eq-kmeans and the
+silhouette [@rousseeuw1987]
+
 $$
 s(i) = \frac{b(i) - a(i)}{\max\{a(i), b(i)\}},
 $$ {#eq-silhouette}
-where $a(i)$ is the mean distance from $i$ to its own cluster and $b(i)$ to the nearest
-other cluster. Stability across seeds is measured with the adjusted Rand index
-[@hubert1985].
+
+where $a(i)$ is the mean distance to the other points of its cluster and $b(i)$ the smallest
+mean distance to another cluster. Stability across seeds is measured with the adjusted Rand
+index [@hubert1985]. Outcomes are never used for clustering.
+
+```{python}
+#| label: fig-selection
+#| fig-cap: "Inertia (left) and mean silhouette (right) by number of clusters k."
+#| fig-alt: "Two line charts against k from 2 to 8: inertia falling and flattening after four clusters, and the silhouette score peaking at k = 2 with similar low values for larger k."
+fig, ax = plt.subplots(1, 2, figsize=(7, 2.6))
+ax[0].plot(ks["k"], ks["inertia"], marker="o"); ax[0].set_xlabel("k"); ax[0].set_ylabel("inertia")
+ax[1].plot(ks["k"], ks["silhouette"], marker="o", color="tab:orange"); ax[1].set_xlabel("k"); ax[1].set_ylabel("silhouette")
+plt.tight_layout(); plt.show()
+```
 
 # Results
 
-The analysis chose $k = `{python} k`$ (silhouette `{python} f"{s['silhouette_at_k']:.3f}"`;
-ARI across seeds ≥ `{python} f"{s['ari_min']:.3f}"`). @fig-heatmap shows what sets the
-kinds apart; @tbl-kinds lists them.
+We selected $k$ = `{python} S['k']`: the next cluster lowers inertia by only about 7%, the
+silhouette is `{python} round(S['silhouette_at_k'], 2)` and the adjusted Rand index across five seeds
+is at least `{python} round(S['ari_min'], 3)`. The clusters are
+"`{python} '", "'.join(names)`". @fig-heatmap shows what separates them.
 
 ```{python}
 #| label: fig-heatmap
-#| fig-cap: "Cluster mean z-scores (@eq-z) by feature. IRCA is utility-supplied (prestadores)."
-#| fig-alt: "Heatmap of four clusters by nine features from blue (below average) to red (above average)."
-z = profiles[[f"z_{f}" for f in features]].to_numpy()
-fig, ax = plt.subplots(figsize=(6.5, 2.8))
-im = ax.imshow(z, cmap="RdBu_r", vmin=-1.5, vmax=1.5, aspect="auto")
-ax.set_xticks(range(len(features)), labels, rotation=30, ha="right", fontsize=8)
-ax.set_yticks(range(k), [f"Cluster {c}" for c in profiles.index], fontsize=8)
-for i in range(z.shape[0]):
-    for j in range(z.shape[1]):
-        ax.text(j, i, f"{z[i, j]:+.1f}", ha="center", va="center", fontsize=7)
-fig.colorbar(im, ax=ax, label="z")
-plt.tight_layout()
-plt.show()
+#| fig-cap: "Cluster mean z-scores (within year) of the nine profile features."
+#| fig-alt: "Heatmap with nine profile features as rows and four named clusters as columns, coloured from blue (below average) to red (above)."
+zc = [c for c in prof.columns if c.startswith("z_")]
+M = prof[zc].T; M.index = [c[2:] for c in zc]
+fig, ax = plt.subplots(figsize=(7, 3.8))
+v = np.abs(M.values).max()
+im = ax.imshow(M.values, cmap="RdBu_r", vmin=-v, vmax=v, aspect="auto")
+ax.set_xticks(range(M.shape[1])); ax.set_xticklabels([names[c].replace(", ", ",\n") for c in M.columns], fontsize=6)
+ax.set_yticks(range(M.shape[0])); ax.set_yticklabels(M.index, fontsize=7)
+for i in range(M.shape[0]):
+    for j in range(M.shape[1]):
+        ax.text(j, i, f"{M.values[i, j]:.1f}", ha="center", va="center", fontsize=6)
+fig.colorbar(im, label="mean z-score"); plt.tight_layout(); plt.show()
 ```
 
+@fig-outcomes shows the outcomes by cluster; lines break in years without data.
+
 ```{python}
-#| label: tbl-kinds
-#| tbl-cap: "The kinds, with median utility-supplied (prestadores) IRCA and within-kind Spearman ρ between IRCA and infant mortality."
-t = pd.DataFrame({"kind": profiles["name"], "zone-years": profiles["rows"],
-                  "median IRCA": profiles["irca_median"],
-                  "ρ": rho["spearman_rho"].map("{:+.2f}".format), "n": rho["n"]})
-Markdown(t.to_markdown())
+#| label: fig-outcomes
+#| fig-cap: "Median infant mortality per 1,000 live births, Saber 11 score and school dropout (%) by cluster and year."
+#| fig-alt: "Three line charts of outcomes by year for four clusters, with gaps where a source has no data."
+years = np.arange(2016, 2024)
+fig, axes = plt.subplots(1, 3, figsize=(7.5, 2.8))
+for ax, o in zip(axes, ["infant_mortality", "saber11_mean", "dropout_rate"]):
+    for c, g in oy[oy["outcome"] == o].groupby("cluster"):
+        ax.plot(years, g.set_index("year")["median"].reindex(years).values, marker="o", ms=2,
+                color=prof.loc[c, "color"], label=names[c])
+    ax.set_title(o, fontsize=8); ax.tick_params(labelsize=6)
+fig.legend(*axes[0].get_legend_handles_labels(), loc="lower center", ncol=2, fontsize=5)
+plt.tight_layout(rect=(0, 0.15, 1, 1)); plt.show()
 ```
+
+Within clusters, Spearman's $\rho$ between IRCA and infant mortality ranges from
+`{python} f"{rho['spearman_rho'].min():.2f}"` to `{python} f"{rho['spearman_rho'].max():.2f}"`,
+a weak association.
 
 # Conclusions
 
-The kinds differ far more in the features that formed them than in outcomes, and within
-each kind infant mortality hardly varies with IRCA band. These comparisons are descriptive:
-poverty, rurality, health-service access and reporting quality may confound them, and
-infant mortality is municipal while IRCA is zonal. They do not establish causal effects of
-water quality.
-
-# References {.unnumbered}
+Municipal water-safety profiles form four descriptive groups. Their outcome differences
+mirror poverty, rurality and altitude as much as IRCA, and within clusters the IRCA-infant
+mortality association is weak. This is not evidence that water quality does or does not
+cause any outcome. Limits: utility-supplied IRCA only, rural zones often unsampled, imputed
+coverage, a change of infant-mortality method in 2017 and no Saber 11 data for 2018 and 2021.
