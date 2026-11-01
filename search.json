@@ -1,0 +1,198 @@
+[
+  {
+    "objectID": "posts/four-kinds/index.html",
+    "href": "posts/four-kinds/index.html",
+    "title": "Four kinds of municipal zone",
+    "section": "",
+    "text": "We grouped 11,235 urban and rural zone-years from 1,090 Colombian municipalities, 2016–2023, by nine features: utility-supplied (prestadores) IRCA, piped water and sewer coverage, poverty, rural share, altitude, rainfall, municipal performance and water transfers per person. k-means picked 4 kinds: k = 4: the next cluster cuts inertia by only 7% (&lt; 10%), and its silhouette 0.195 is within 0.01 of the best k &gt;= 3 (0.196).\nThe kinds are: Cities and large towns, no-risk water; Highland towns, no-risk water; Lowland towns, low-risk water; Rural, low-coverage, high-risk water.\nInfant mortality, Saber 11 and dropout differ between the kinds, but these comparisons are descriptive and do not establish causal effects of water quality. Read the report or the clusters page for the details."
+  },
+  {
+    "objectID": "slides.html#the-question",
+    "href": "slides.html#the-question",
+    "title": "Kinds of municipal zone: water, health and education",
+    "section": "The question",
+    "text": "The question\n\nWhich kinds of municipal zone exist, by drinking-water quality, services and context?\nHow do infant mortality, Saber 11 scores and school dropout differ between them?\n11,235 zone-years, 1,090 municipalities, 2016–2023; IRCA is utility-supplied (prestadores)"
+  },
+  {
+    "objectID": "slides.html#the-4-kinds",
+    "href": "slides.html#the-4-kinds",
+    "title": "Kinds of municipal zone: water, health and education",
+    "section": "The 4 kinds",
+    "text": "The 4 kinds\n\n\n\n\n\n\n\n\n\n\n\n\nCluster\nKind\nZone-years\nMunicipalities\nMedian IRCA\n\n\n\n\n1\nCities and large towns, no-risk water\n2271\n284\n1.6\n\n\n2\nHighland towns, no-risk water\n3750\n558\n4\n\n\n3\nLowland towns, low-risk water\n2451\n479\n9.2\n\n\n4\nRural, low-coverage, high-risk water\n2763\n729\n35.2"
+  },
+  {
+    "objectID": "slides.html#what-sets-them-apart",
+    "href": "slides.html#what-sets-them-apart",
+    "title": "Kinds of municipal zone: water, health and education",
+    "section": "What sets them apart",
+    "text": "What sets them apart"
+  },
+  {
+    "objectID": "slides.html#outcomes-by-kind",
+    "href": "slides.html#outcomes-by-kind",
+    "title": "Kinds of municipal zone: water, health and education",
+    "section": "Outcomes by kind",
+    "text": "Outcomes by kind"
+  },
+  {
+    "objectID": "slides.html#what-this-does-and-does-not-show",
+    "href": "slides.html#what-this-does-and-does-not-show",
+    "title": "Kinds of municipal zone: water, health and education",
+    "section": "What this does and does not show",
+    "text": "What this does and does not show\n\n✅ Where the kinds are, and how outcomes differ between them\n❌ Not a causal effect of water quality: poverty, rurality, health access and reporting differ too\n⚠️ IRCA is utility-supplied (prestadores); many rural systems are never sampled"
+  },
+  {
+    "objectID": "clusters.html",
+    "href": "clusters.html",
+    "title": "Kinds of municipal zone: k-means clusters",
+    "section": "",
+    "text": "k-means on nine z-scored features (utility-supplied, prestadores IRCA; piped water and sewer coverage; poverty; rural share; altitude; rainfall; municipal performance; log SGP water transfers per person), 11,235 zone-years, 2016–2023. The analysis chose k = 4: k = 4: the next cluster cuts inertia by only 7% (&lt; 10%), and its silhouette 0.195 is within 0.01 of the best k &gt;= 3 (0.196)."
+  },
+  {
+    "objectID": "clusters.html#choosing-k",
+    "href": "clusters.html#choosing-k",
+    "title": "Kinds of municipal zone: k-means clusters",
+    "section": "Choosing k",
+    "text": "Choosing k\n\n\n\n\n\n\n\n\n\n\n\n\n\nFigure 1: Elbow plot: k-means inertia (within-cluster sum of squares) by k.\n\n\n\n\n\n\n\n\n\n\n\n\n\nFigure 2: Mean silhouette (−1 to 1) by k, on a fixed sample of rows."
+  },
+  {
+    "objectID": "clusters.html#a-picture-of-the-clusters",
+    "href": "clusters.html#a-picture-of-the-clusters",
+    "title": "Kinds of municipal zone: k-means clusters",
+    "section": "A picture of the clusters",
+    "text": "A picture of the clusters\n\n\n\n\n\n\n\n\nFigure 3: Each dot is a zone-year on the first two principal components of the nine z-scored features, coloured by cluster. PCA is only for the picture; k-means used all nine features."
+  },
+  {
+    "objectID": "clusters.html#what-sets-each-cluster-apart",
+    "href": "clusters.html#what-sets-each-cluster-apart",
+    "title": "Kinds of municipal zone: k-means clusters",
+    "section": "What sets each cluster apart?",
+    "text": "What sets each cluster apart?\n\n\n\n\n\n\n\n\nFigure 4: Cluster mean z-scores: standard deviations above (red) or below (blue) the year’s average. IRCA is utility-supplied (prestadores)."
+  },
+  {
+    "objectID": "clusters.html#outcomes-by-cluster-and-year",
+    "href": "clusters.html#outcomes-by-cluster-and-year",
+    "title": "Kinds of municipal zone: k-means clusters",
+    "section": "Outcomes by cluster and year",
+    "text": "Outcomes by cluster and year\nOutcomes describe the clusters; they were never used to form them. These differences are descriptive and do not establish causal effects of water quality. Infant mortality is shown for 2017–2019 and 2021–2023 only; Saber 11 only in published years.\n\n\n\n\n\n\n\n\nFigure 5: Median outcome by cluster and year. Missing years are gaps, not joined lines."
+  },
+  {
+    "objectID": "clusters.html#worse-water-more-infant-deaths-within-cluster-check",
+    "href": "clusters.html#worse-water-more-infant-deaths-within-cluster-check",
+    "title": "Kinds of municipal zone: k-means clusters",
+    "section": "Worse water, more infant deaths? Within-cluster check",
+    "text": "Worse water, more infant deaths? Within-cluster check\n\n\n\n\n\n\n\n\nFigure 6: Median infant mortality (per 1,000 live births) by utility-supplied (prestadores) IRCA band, within each cluster; 2017–2019 and 2021–2023 pooled, one row per municipality-year. ρ is Spearman’s rank correlation of IRCA with infant mortality; n counts municipality-years.\n\n\n\n\n\n\n\n\n\nTable 1: Spearman’s ρ between utility-supplied (prestadores) IRCA and infant mortality, within each cluster.\n\n\n\n\n\n\n\n\n\n\n\n\n\ncluster\nkind\nspearman_rho\nn\nmunicipalities\n\n\n\n\n1\nCities and large towns, no-risk water\n-0.04\n1035\n270\n\n\n2\nHighland towns, no-risk water\n0.1\n1355\n475\n\n\n3\nLowland towns, low-risk water\n0.05\n1482\n425\n\n\n4\nRural, low-coverage, high-risk water\n0.01\n1290\n570\n\n\n\n\n\n\n\n\nThis comparison is descriptive: it does not establish a causal effect of water quality on infant mortality, because poverty, rurality, health-service access and reporting quality differ between places, and infant mortality is measured for the whole municipality while IRCA is measured per zone."
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Colombian municipal water quality",
+    "section": "",
+    "text": "Kinds of municipal zone in Colombia, by drinking-water quality (utility-supplied, prestadores IRCA), services and context, and how infant mortality, Saber 11 scores and school dropout differ between them, 2016–2023. One analysis, scripts/analysis.py, feeds every page: Explore, Clusters, the Report and the council Slides. All comparisons are descriptive, not causal."
+  },
+  {
+    "objectID": "index.html#posts",
+    "href": "index.html#posts",
+    "title": "Colombian municipal water quality",
+    "section": "Posts",
+    "text": "Posts"
+  },
+  {
+    "objectID": "explore.html",
+    "href": "explore.html",
+    "title": "Exploring Colombian municipal water data, 2010–2023",
+    "section": "",
+    "text": "One row is a municipality × zone (urban/rural) × year. The table has 31,416 rows and 28 columns, covering 1122 DIVIPOLA codes from 2010 to 2023. IRCA throughout is the utility-supplied (prestadores) IRCA from INS open data (datos.gov.co nxt2-39c3)."
+  },
+  {
+    "objectID": "explore.html#missing-values-by-zone",
+    "href": "explore.html#missing-values-by-zone",
+    "title": "Exploring Colombian municipal water data, 2010–2023",
+    "section": "Missing values by zone",
+    "text": "Missing values by zone\n\n\n\n\nTable 1: Percentage of rows with a missing value, by column and zone (all years).\n\n\n\n\n\n\ncolumn\nurban\nrural\n\n\n\n\ndivipola\n0\n0\n\n\nmunicipio\n0\n0\n\n\ndpto_code\n0\n0\n\n\ndepartamento\n0\n0\n\n\nregion\n0\n0\n\n\nentity_type\n0\n0\n\n\nyear\n0\n0\n\n\nirca\n14.5\n52.9\n\n\nirca_missing\n0\n0\n\n\nwater_coverage\n9.7\n10.5\n\n\nsewer_coverage\n9.7\n10.5\n\n\nwater_coverage_total\n6.6\n6.6\n\n\nsewer_coverage_total\n6.7\n6.7\n\n\npopulation\n0.1\n0.1\n\n\nrural_share\n0.1\n0.1\n\n\nrurality_category\n1.9\n1.9\n\n\naltitude_m\n0\n0\n\n\nipm\n1.9\n1.9\n\n\nmdm\n43.9\n43.9\n\n\nidf\n23\n23\n\n\nidf_new\n72\n72\n\n\nsgp_water_pc\n1.8\n1.8\n\n\nrainfall_mm\n0.1\n0.1\n\n\ninfant_mortality\n14.9\n14.9\n\n\nsaber11_mean\n52.2\n58.9\n\n\nsaber11_n\n50\n50\n\n\ndropout_rate\n8.1\n8.1"
+  },
+  {
+    "objectID": "explore.html#irca-by-risk-band-and-zone",
+    "href": "explore.html#irca-by-risk-band-and-zone",
+    "title": "Exploring Colombian municipal water data, 2010–2023",
+    "section": "IRCA by risk band and zone",
+    "text": "IRCA by risk band and zone\nBands from Resolución 2115 de 2007, art. 15: 0–5 no risk, 5.1–14 low, 14.1–35 medium, 35.1–80 high, 80.1–100 unfit.\n\n\n\n\nTable 2: Number of rows by utility-supplied (prestadores) IRCA band and zone, 2010–2023.\n\n\n\n\n\n\nIRCA band\nurban\nrural\n\n\n\n\nNo risk\n6594\n1510\n\n\nLow\n2801\n842\n\n\nMedium\n2372\n1273\n\n\nHigh\n1469\n3143\n\n\nUnfit\n197\n630\n\n\nNo IRCA\n2275\n8310"
+  },
+  {
+    "objectID": "explore.html#median-irca-by-year-and-zone",
+    "href": "explore.html#median-irca-by-year-and-zone",
+    "title": "Exploring Colombian municipal water data, 2010–2023",
+    "section": "Median IRCA by year and zone",
+    "text": "Median IRCA by year and zone\n\n\n\n\n\n\n\n\nFigure 1: Median utility-supplied (prestadores) IRCA by year and zone, 2010–2023 (rows with an IRCA value).\n\n\n\n\n\n\n\n\n\nTable 3: Median utility-supplied (prestadores) IRCA by year and zone.\n\n\n\n\n\n\nyear\nurban\nrural\n\n\n\n\n2010\n10.8\n49.4\n\n\n2011\n14.7\n50.3\n\n\n2012\n10.9\n49.7\n\n\n2013\n7.1\n49.1\n\n\n2014\n6.4\n48\n\n\n2015\n5.3\n47.2\n\n\n2016\n4.6\n34.4\n\n\n2017\n4\n31\n\n\n2018\n4.8\n39.4\n\n\n2019\n2.8\n36.5\n\n\n2020\n2.4\n9.9\n\n\n2021\n3.3\n11.3\n\n\n2022\n3.6\n13.4\n\n\n2023\n3\n13.4"
+  },
+  {
+    "objectID": "report.html",
+    "href": "report.html",
+    "title": "Kinds of municipal zone in Colombia: drinking water, health and education",
+    "section": "",
+    "text": "k-means on nine water, service and context features finds 4 kinds of municipal zone among 11,235 zone-years from 1,090 municipalities, 2016–2023. The lowest mean infant mortality is in “Cities and large towns, no-risk water” and the highest in “Highland towns, no-risk water”. Within each kind, the rank correlation between utility-supplied IRCA and infant mortality lies between -0.04 and +0.10. All comparisons are descriptive and do not establish causal effects of water quality."
+  },
+  {
+    "objectID": "report.html#summary",
+    "href": "report.html#summary",
+    "title": "Kinds of municipal zone in Colombia: drinking water, health and education",
+    "section": "",
+    "text": "k-means on nine water, service and context features finds 4 kinds of municipal zone among 11,235 zone-years from 1,090 municipalities, 2016–2023. The lowest mean infant mortality is in “Cities and large towns, no-risk water” and the highest in “Highland towns, no-risk water”. Within each kind, the rank correlation between utility-supplied IRCA and infant mortality lies between -0.04 and +0.10. All comparisons are descriptive and do not establish causal effects of water quality."
+  },
+  {
+    "objectID": "report.html#question",
+    "href": "report.html#question",
+    "title": "Kinds of municipal zone in Colombia: drinking water, health and education",
+    "section": "Question",
+    "text": "Question\nWhich kinds of municipal zone exist in Colombia, in terms of drinking-water quality, services and context, and how do infant mortality, Saber 11 scores and school dropout differ between them?"
+  },
+  {
+    "objectID": "report.html#data",
+    "href": "report.html#data",
+    "title": "Kinds of municipal zone in Colombia: drinking water, health and education",
+    "section": "Data",
+    "text": "Data\nOne row is a municipality’s urban or rural zone in one year (data/water_municipal.csv, real public data joined on DANE DIVIPOLA codes; see data/README.md). IRCA is the utility-supplied (“prestadores”) IRCA from INS open data (datos.gov.co nxt2-39c3), not INS’s national total, which also covers self-supplied systems. Coverage comes from REC self-reports, poverty (IPM) from the 2018 census, altitude is a derived SRTM point and SGP transfers are nominal pesos."
+  },
+  {
+    "objectID": "report.html#method",
+    "href": "report.html#method",
+    "title": "Kinds of municipal zone in Colombia: drinking water, health and education",
+    "section": "Method",
+    "text": "Method\nWe keep municipality zone-years 2016–2023 with an IRCA value (11,235 rows; 6,411 without IRCA dropped). Capitals’ urban rows use the municipal coverage total (214 rows, flagged); remaining gaps take the year × zone median (653 rows, flagged). Each feature is z-scored within its year. k-means (20 starts, seed 42) was fitted for k = 2–8; k = 4: the next cluster cuts inertia by only 7% (&lt; 10%), and its silhouette 0.195 is within 0.01 of the best k &gt;= 3 (0.196). Clusters are numbered by centroid IRCA and named by a fixed rule. Outcomes were never used to form the clusters."
+  },
+  {
+    "objectID": "report.html#what-sets-each-kind-apart",
+    "href": "report.html#what-sets-each-kind-apart",
+    "title": "Kinds of municipal zone in Colombia: drinking water, health and education",
+    "section": "What sets each kind apart",
+    "text": "What sets each kind apart\n\n\n\n\n\n\n\n\nFigure 1: Cluster mean z-scores: standard deviations above (red) or below (blue) the year’s average. IRCA is utility-supplied (prestadores).\n\n\n\n\n\n\n\n\n\nTable 1: The kinds: zone-years, municipalities and median utility-supplied (prestadores) IRCA.\n\n\n\n\n\n\n\n\n\n\n\n\n\ncluster\nkind\nzone-years\nmunicipalities\nmedian IRCA\n\n\n\n\n1\nCities and large towns, no-risk water\n2271\n284\n1.6\n\n\n2\nHighland towns, no-risk water\n3750\n558\n4\n\n\n3\nLowland towns, low-risk water\n2451\n479\n9.2\n\n\n4\nRural, low-coverage, high-risk water\n2763\n729\n35.2"
+  },
+  {
+    "objectID": "report.html#outcomes-by-kind",
+    "href": "report.html#outcomes-by-kind",
+    "title": "Kinds of municipal zone in Colombia: drinking water, health and education",
+    "section": "Outcomes by kind",
+    "text": "Outcomes by kind\n\n\n\n\n\n\n\n\nFigure 2: Median outcome by cluster and year. Infant mortality: 2017–2019 and 2021–2023 only (method change in 2017; 2020 looks like another source). Saber 11: published years. Gaps are years without data."
+  },
+  {
+    "objectID": "report.html#correlation-causation",
+    "href": "report.html#correlation-causation",
+    "title": "Kinds of municipal zone in Colombia: drinking water, health and education",
+    "section": "Correlation ≠ causation",
+    "text": "Correlation ≠ causation\n\n\n\n\n\n\n\n\nFigure 3: Median infant mortality by utility-supplied (prestadores) IRCA band within each cluster, 2017–2019 and 2021–2023 pooled; ρ is Spearman’s rank correlation, n municipality-years.\n\n\n\n\n\nWithin each kind, infant mortality hardly changes with the IRCA band (ρ between -0.04 and +0.10). That does not show water is harmless, nor that it is harmful: poverty, rurality, access to health services and reporting quality affect both water and recorded deaths, and infant mortality is municipal while IRCA is zonal (an ecological comparison). These differences are descriptive and do not establish causal effects of water quality."
+  },
+  {
+    "objectID": "report.html#limits",
+    "href": "report.html#limits",
+    "title": "Kinds of municipal zone in Colombia: drinking water, health and education",
+    "section": "Limits",
+    "text": "Limits\n\nIRCA is utility-supplied only; self-supplied rural systems, with higher risk, are not in it, and rural IRCA is missing in about half of rural rows.\nInfant mortality changes method in 2017; small municipalities have noisy rates, and a blank may mean no recorded deaths.\nSaber 11 covers students who sat the exam, by school location; 2018 and 2021 are missing.\nSilhouette 0.19: the kinds overlap and summarise a continuum."
+  },
+  {
+    "objectID": "report.html#sources",
+    "href": "report.html#sources",
+    "title": "Kinds of municipal zone in Colombia: drinking water, health and education",
+    "section": "Sources",
+    "text": "Sources\n\nINS, Calidad del Agua para Consumo Humano en Colombia, datos.gov.co nxt2-39c3 (CC BY-SA 4.0), utility-supplied (prestadores) IRCA.\nResolución 2115 de 2007, art. 15 (IRCA risk bands).\nDNP TerriData (coverage, IPM, MDM, SGP, infant mortality; Superservicios, DANE, DNP-SICODIS, MinSalud).\nDANE DIVIPOLA gdxc-w37w, population projections and MGN 2023.\nICFES Saber 11 (kgxf-xxbe, rnvb-vnyh); MEN dropout (nudc-7mev).\nCHIRPS v3.0 rainfall (Funk et al. 2026, doi:10.1038/s41597-026-07096-4); NASA SRTM GL3 via OpenTopoData (doi:10.5067/MEaSUREs/SRTM/SRTMGL3.003).\n\nFull details, licences and retrieval dates: data/README.md."
+  }
+]
