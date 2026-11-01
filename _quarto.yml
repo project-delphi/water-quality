@@ -1,0 +1,40 @@
+project:
+  type: website
+  execute-dir: project
+  pre-render: scripts/analysis.py
+  render:
+    - index.qmd
+    - explore.qmd
+    - clusters.qmd
+    - report.qmd
+    - slides.qmd
+    - dashboard.qmd
+    - posts/*/index.qmd
+
+execute:
+  freeze: false
+
+website:
+  title: "Colombian municipal water quality"
+  navbar:
+    left:
+      - text: Explore
+        href: explore.qmd
+      - text: Clusters
+        href: clusters.qmd
+      - text: Report
+        href: report.qmd
+      - text: Slides
+        href: slides.qmd
+      - text: Dashboard
+        href: dashboard.qmd
+      - text: Downloads
+        menu:
+          - text: "Report (Word)"
+            href: report.docx
+          - text: "Report (PDF)"
+            href: report.pdf
+          - text: "Report (ePub)"
+            href: report.epub
+          - text: "Slides (PowerPoint)"
+            href: slides.pptx

@@ -1,0 +1,165 @@
+---
+title: "Kinds of municipal zone: k-means clusters"
+format: html
+execute:
+  echo: false
+---
+
+```{python}
+import json
+import matplotlib.pyplot as plt
+import pandas as pd
+
+ksel = pd.read_csv("outputs/k_selection.csv")
+clusters = pd.read_parquet("outputs/clusters.parquet")
+summary = json.load(open("outputs/summary.json"))
+k = summary["k"]
+```
+
+k-means on nine z-scored features (utility-supplied, prestadores IRCA; piped water and
+sewer coverage; poverty; rural share; altitude; rainfall; municipal performance; log SGP
+water transfers per person), `{python} f"{len(clusters):,}"` zone-years, 2016–2023. The
+analysis chose **k = `{python} k`**: `{python} summary["k_reason"]`
+
+## Choosing k
+
+::: {layout-ncol=2}
+
+```{python}
+#| label: fig-elbow
+#| fig-cap: "Elbow plot: k-means inertia (within-cluster sum of squares) by k."
+#| fig-alt: "Line chart of inertia falling as k rises from 2 to 8, with the chosen k marked."
+fig, ax = plt.subplots(figsize=(4.5, 3.2))
+ax.plot(ksel["k"], ksel["inertia"], marker="o")
+ax.axvline(k, color="grey", linestyle="--")
+ax.set_xlabel("k (number of clusters)")
+ax.set_ylabel("Inertia")
+plt.tight_layout()
+plt.show()
+```
+
+```{python}
+#| label: fig-silhouette
+#| fig-cap: "Mean silhouette (−1 to 1) by k, on a fixed sample of rows."
+#| fig-alt: "Line chart of the mean silhouette by k from 2 to 8, around 0.17 to 0.24, with the chosen k marked."
+fig, ax = plt.subplots(figsize=(4.5, 3.2))
+ax.plot(ksel["k"], ksel["silhouette"], marker="o", color="#b5651d")
+ax.axvline(k, color="grey", linestyle="--")
+ax.set_xlabel("k (number of clusters)")
+ax.set_ylabel("Mean silhouette")
+plt.tight_layout()
+plt.show()
+```
+
+:::
+
+## A picture of the clusters
+
+```{python}
+#| label: fig-pca
+#| fig-cap: "Each dot is a zone-year on the first two principal components of the nine z-scored features, coloured by cluster. PCA is only for the picture; k-means used all nine features."
+#| fig-alt: "Scatter plot of about eleven thousand zone-years in four coloured, overlapping groups on the first two principal components."
+colors = ["#1b9e77", "#d95f02", "#7570b3", "#e7298a", "#66a61e", "#e6ab02", "#a6761d", "#666666"]
+fig, ax = plt.subplots(figsize=(7, 4.5))
+for c, g in clusters.groupby("cluster"):
+    ax.scatter(g["pc1"], g["pc2"], s=4, alpha=0.5, color=colors[c - 1], label=f"Cluster {c}")
+ax.set_xlabel(f"PC1 ({summary['pca_variance_pc1']:.0%} of variance)")
+ax.set_ylabel(f"PC2 ({summary['pca_variance_pc2']:.0%} of variance)")
+ax.legend(markerscale=4, frameon=False)
+plt.tight_layout()
+plt.show()
+```
+
+## What sets each cluster apart?
+
+```{python}
+profiles = pd.read_csv("outputs/cluster_profiles.csv").set_index("cluster")
+names = profiles["name"].to_dict()
+pcolors = profiles["color"].to_dict()
+features = ["irca", "water_coverage", "sewer_coverage", "ipm", "rural_share", "altitude_m",
+            "rainfall_mm", "mdm", "log_sgp_water_pc"]
+labels = ["IRCA (prestadores)", "Piped water", "Sewer", "Poverty (IPM)", "Rural share",
+          "Altitude", "Rainfall", "MDM", "log SGP water / person"]
+```
+
+```{python}
+#| label: fig-heatmap
+#| fig-cap: "Cluster mean z-scores: standard deviations above (red) or below (blue) the year's average. IRCA is utility-supplied (prestadores)."
+#| fig-alt: "Heatmap of four clusters by nine features, blue for below-average and red for above-average values, with each cell's mean z-score printed."
+z = profiles[[f"z_{f}" for f in features]].to_numpy()
+fig, ax = plt.subplots(figsize=(8, 3.4))
+im = ax.imshow(z, cmap="RdBu_r", vmin=-1.5, vmax=1.5, aspect="auto")
+ax.set_xticks(range(len(features)), labels, rotation=30, ha="right")
+ax.set_yticks(range(len(profiles)), [f"{c} · {names[c]}" for c in profiles.index])
+for i in range(z.shape[0]):
+    for j in range(z.shape[1]):
+        ax.text(j, i, f"{z[i, j]:+.1f}", ha="center", va="center", fontsize=8)
+fig.colorbar(im, ax=ax, label="z")
+plt.tight_layout()
+plt.show()
+```
+
+## Outcomes by cluster and year
+
+Outcomes describe the clusters; they were never used to form them. These differences are
+descriptive and do not establish causal effects of water quality. Infant mortality is shown
+for 2017–2019 and 2021–2023 only; Saber 11 only in published years.
+
+```{python}
+#| label: fig-outcomes
+#| fig-cap: "Median outcome by cluster and year. Missing years are gaps, not joined lines."
+#| fig-alt: "Three line charts by year, one per outcome (infant mortality, Saber 11 score, dropout), one line per cluster, with gaps in years without data."
+outcomes = pd.read_csv("outputs/outcomes_by_year.csv")
+titles = {"infant_mortality": "Infant mortality per 1,000 births",
+          "saber11_mean": "Saber 11 mean score", "dropout_rate": "School dropout (%)"}
+fig, axes = plt.subplots(1, 3, figsize=(10, 3.4))
+for ax, (col, title) in zip(axes, titles.items()):
+    o = outcomes[outcomes["outcome"] == col]
+    for c, g in o.groupby("cluster"):
+        g = g.set_index("year").reindex(range(2016, 2024))   # missing years become gaps
+        ax.plot(g.index, g["median"], marker="o", color=pcolors[c], label=names[c])
+    ax.set_title(title, fontsize=10, loc="left")
+    ax.set_xticks([2016, 2019, 2022])
+fig.legend(*axes[0].get_legend_handles_labels(), loc="lower center", ncol=2, frameon=False,
+           bbox_to_anchor=(0.5, -0.12), fontsize=8)
+plt.tight_layout()
+plt.show()
+```
+
+## Worse water, more infant deaths? Within-cluster check
+
+```{python}
+#| label: fig-within
+#| fig-cap: "Median infant mortality (per 1,000 live births) by utility-supplied (prestadores) IRCA band, within each cluster; 2017–2019 and 2021–2023 pooled, one row per municipality-year. ρ is Spearman's rank correlation of IRCA with infant mortality; n counts municipality-years."
+#| fig-alt: "Four small panels, one per cluster, showing median infant mortality across the IRCA bands from no risk to unfit, with Spearman's rho and n printed on each; the lines are nearly flat."
+rho = pd.read_csv("outputs/irca_infant.csv").set_index("cluster")
+bins = pd.read_csv("outputs/irca_infant_bins.csv")
+band_order = ["No risk", "Low", "Medium", "High", "Unfit"]
+fig, axes = plt.subplots(1, len(rho), figsize=(10, 3), sharey=True)
+for ax, (c, g) in zip(axes, bins.groupby("cluster")):
+    g = g.set_index("irca_band").reindex(band_order)
+    ax.plot(range(5), g["median"], marker="o", color=pcolors[c])
+    ax.set_xticks(range(5), ["N", "L", "M", "H", "U"])
+    ax.set_title(f"Cluster {c}", fontsize=10, loc="left", color=pcolors[c])
+    ax.text(0.04, 0.06, f"ρ = {rho.loc[c, 'spearman_rho']:+.2f}\nn = {rho.loc[c, 'n']:,}",
+            transform=ax.transAxes, fontsize=9)
+axes[0].set_ylabel("Infant mortality per 1,000")
+fig.supxlabel("IRCA band: N no risk · L low · M medium · H high · U unfit", fontsize=9)
+plt.tight_layout()
+plt.show()
+```
+
+```{python}
+#| label: tbl-rho
+#| tbl-cap: "Spearman's ρ between utility-supplied (prestadores) IRCA and infant mortality, within each cluster."
+from IPython.display import Markdown
+t = rho[["spearman_rho", "n", "municipalities"]].copy()
+t.insert(0, "kind", [names[c] for c in t.index])
+t["spearman_rho"] = t["spearman_rho"].map("{:+.2f}".format)
+Markdown(t.to_markdown())
+```
+
+This comparison is descriptive: it does not establish a causal effect of water quality on
+infant mortality, because poverty, rurality, health-service access and reporting quality
+differ between places, and infant mortality is measured for the whole municipality while
+IRCA is measured per zone.
