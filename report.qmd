@@ -1,179 +1,158 @@
 ---
-title: "Kinds of municipal zone in Colombia: drinking water, health and education"
-subtitle: "A descriptive analysis, 2016–2023"
-date: today
+title: "Water safety and infant mortality in Colombian municipalities, 2016-2023"
+subtitle: "A descriptive clustering of municipal water profiles"
 lang: en
 format:
   html:
+    toc: true
+    embed-resources: true
     format-links:
-      - docx
-      - {format: typst, text: PDF}
-      - {format: epub, text: ePub}
-  docx: default
-  typst: default
+      - text: Word
+        format: docx
+      - text: PDF
+        format: typst
+      - text: ePub
+        format: epub
   epub:
     toc: true
+  docx:
+    toc: true
+  typst:
+    toc: true
+    papersize: a4
+jupyter: python3
 execute:
   echo: false
+  warning: false
 ---
 
 ```{python}
-import json
-
-import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
-from IPython.display import Markdown
-
-summary = json.load(open("outputs/summary.json"))
-profiles = pd.read_csv("outputs/cluster_profiles.csv").set_index("cluster")
-outcomes = pd.read_csv("outputs/outcomes_by_year.csv")
-rho = pd.read_csv("outputs/irca_infant.csv").set_index("cluster")
+import matplotlib.pyplot as plt
+prof = pd.read_csv("outputs/cluster_profiles.csv").set_index("cluster")
+oy = pd.read_csv("outputs/outcomes_by_year.csv")
 bins = pd.read_csv("outputs/irca_infant_bins.csv")
-k = summary["k"]
-names = profiles["name"].to_dict()
-colors = profiles["color"].to_dict()
-features = ["irca", "water_coverage", "sewer_coverage", "ipm", "rural_share", "altitude_m",
-            "rainfall_mm", "mdm", "log_sgp_water_pc"]
-labels = ["IRCA (prestadores)", "Piped water", "Sewer", "Poverty (IPM)", "Rural share",
-          "Altitude", "Rainfall", "MDM", "log SGP water / person"]
-rho_lo, rho_hi = f"{rho['spearman_rho'].min():+.2f}", f"{rho['spearman_rho'].max():+.2f}"
-im_best = names[profiles["infant_mortality_mean"].idxmin()]
-im_worst = names[profiles["infant_mortality_mean"].idxmax()]
+rho = pd.read_csv("outputs/irca_infant.csv").set_index("cluster")
+import json
+S = json.load(open("outputs/summary.json"))
+names = prof["name"]
 ```
 
-## Summary
+# Summary
 
-k-means on nine water, service and context features finds `{python} k` kinds of
-municipal zone among `{python} f"{summary['kept']:,}"` zone-years from
-`{python} f"{summary['municipalities']:,}"` municipalities, 2016–2023. The lowest mean
-infant mortality is in "`{python} im_best`" and the highest in "`{python} im_worst`".
-Within each kind, the rank correlation between utility-supplied IRCA and infant mortality
-lies between `{python} rho_lo` and `{python} rho_hi`. All comparisons are descriptive and
-do not establish causal effects of water quality.
+Using `{python} f"{S['kept']:,}"` municipality-zone-year rows
+(`{python} f"{S['municipalities']:,}"` municipalities, 2016-2023), k-means finds
+`{python} S['k']` groups of municipal water profiles. The one with the highest
+utility-supplied IRCA (median `{python} prof['irca_median'].max()`) is
+"`{python} names[prof['irca_median'].idxmax()]`". Infant mortality, Saber 11 scores and
+dropout differ across clusters, but these are **descriptive associations, not causal effects
+of water quality**.
 
-## Question
+# Question
 
-Which kinds of municipal zone exist in Colombia, in terms of drinking-water quality,
-services and context, and how do infant mortality, Saber 11 scores and school dropout
-differ between them?
+How do Colombian municipalities group by the safety of their drinking water and the
+context around it, and how do infant mortality, school results and dropout look in each
+group?
 
-## Data
+# Data
 
-One row is a municipality's urban or rural zone in one year (`data/water_municipal.csv`,
-real public data joined on DANE DIVIPOLA codes; see `data/README.md`). **IRCA is the
-utility-supplied ("prestadores") IRCA** from INS open data (datos.gov.co `nxt2-39c3`), not
-INS's national total, which also covers self-supplied systems. Coverage comes from REC
-self-reports, poverty (IPM) from the 2018 census, altitude is a derived SRTM point and SGP
-transfers are nominal pesos.
+One row is a municipality x zone (urban/rural) x year, from the public dataset in
+`data/` (INS, DNP TerriData, DANE, CHIRPS, ICFES, MEN; see Sources). **IRCA is the
+utility-supplied ("prestadores") IRCA from INS open data**, not INS's national total; it
+runs from 0 (no risk) to 100 (unfit) and is much more often missing for rural zones. Only
+rows of municipalities with an IRCA value in 2016-2023 are used. Department capitals have
+no urban/rural coverage split, so their urban coverage is filled from the municipal total
+(`{python} S['capital_urban_rows_filled_from_total']` rows, flagged in the data).
 
-## Method
+# Method
 
-We keep municipality zone-years 2016–2023 with an IRCA value
-(`{python} f"{summary['kept']:,}"` rows; `{python} f"{summary['dropped_no_irca']:,}"`
-without IRCA dropped). Capitals' urban rows use the municipal coverage total
-(`{python} summary['capital_urban_rows_filled_from_total']` rows, flagged); remaining gaps
-take the year × zone median (`{python} summary['rows_with_any_imputed']` rows, flagged).
-Each feature is z-scored within its year. k-means (20 starts, seed
-`{python} summary['seed']`) was fitted for k = 2–8; `{python} summary['k_reason']`
-Clusters are numbered by centroid IRCA and named by a fixed rule. Outcomes were never
-used to form the clusters.
+Nine profile features (IRCA, water and sewer coverage, multidimensional poverty, rural
+share, altitude, rainfall, municipal performance, log water transfers per person) were
+standardised within each year and clustered with k-means
+(`random_state` = `{python} S['seed']`, `{python} S['n_init']` starts). k = `{python} S['k']`
+was chosen from the elbow, with silhouette `{python} round(S['silhouette_at_k'], 2)` and
+stability across five seeds (ARI >= `{python} round(S['ari_min'], 3)`). Outcomes (infant
+mortality, Saber 11, dropout) were **not** used to cluster; they only describe the clusters.
 
-## What sets each kind apart
+# What sets the clusters apart
 
 ```{python}
 #| label: fig-heatmap
-#| fig-cap: "Cluster mean z-scores: standard deviations above (red) or below (blue) the year's average. IRCA is utility-supplied (prestadores)."
-#| fig-alt: "Heatmap of four clusters by nine features from blue (below average) to red (above average) with each cell's mean z-score printed: the rural cluster is red for IRCA and poverty and blue for coverage."
-z = profiles[[f"z_{f}" for f in features]].to_numpy()
-fig, ax = plt.subplots(figsize=(8, 3.4))
-im = ax.imshow(z, cmap="RdBu_r", vmin=-1.5, vmax=1.5, aspect="auto")
-ax.set_xticks(range(len(features)), labels, rotation=30, ha="right")
-ax.set_yticks(range(len(profiles)), [f"{c} · {names[c]}" for c in profiles.index])
-for i in range(z.shape[0]):
-    for j in range(z.shape[1]):
-        ax.text(j, i, f"{z[i, j]:+.1f}", ha="center", va="center", fontsize=8)
-fig.colorbar(im, ax=ax, label="z")
-plt.tight_layout()
-plt.show()
+#| fig-cap: "Cluster mean z-scores (within year) of the nine profile features; blue is below the yearly average and red above."
+#| fig-alt: "Heatmap with nine profile features as rows and four named clusters as columns, coloured from blue (below average) to red (above)."
+zc = [c for c in prof.columns if c.startswith("z_")]
+M = prof[zc].T; M.index = [c[2:] for c in zc]
+fig, ax = plt.subplots(figsize=(7.5, 4.4))
+v = np.abs(M.values).max()
+im = ax.imshow(M.values, cmap="RdBu_r", vmin=-v, vmax=v, aspect="auto")
+ax.set_xticks(range(M.shape[1]))
+ax.set_xticklabels([names[c].replace(", ", ",\n") for c in M.columns], fontsize=7)
+ax.set_yticks(range(M.shape[0])); ax.set_yticklabels(M.index, fontsize=8)
+for i in range(M.shape[0]):
+    for j in range(M.shape[1]):
+        ax.text(j, i, f"{M.values[i, j]:.1f}", ha="center", va="center", fontsize=7)
+fig.colorbar(im, label="mean z-score"); plt.tight_layout(); plt.show()
 ```
 
-```{python}
-#| label: tbl-kinds
-#| tbl-cap: "The kinds: zone-years, municipalities and median utility-supplied (prestadores) IRCA."
-t = profiles[["name", "rows", "municipalities", "irca_median"]].rename(
-    columns={"name": "kind", "rows": "zone-years", "irca_median": "median IRCA"})
-Markdown(t.to_markdown())
-```
-
-## Outcomes by kind
+# Outcomes by cluster
 
 ```{python}
 #| label: fig-outcomes
-#| fig-cap: "Median outcome by cluster and year. Infant mortality: 2017–2019 and 2021–2023 only (method change in 2017; 2020 looks like another source). Saber 11: published years. Gaps are years without data."
-#| fig-alt: "Three line charts by year, one per outcome, one line per cluster; cities and large towns have the lowest infant mortality and the highest Saber 11 scores."
-titles = {"infant_mortality": "Infant mortality per 1,000 births",
-          "saber11_mean": "Saber 11 mean score", "dropout_rate": "School dropout (%)"}
+#| fig-cap: "Median infant mortality (per 1,000 live births), Saber 11 mean score and school dropout (%) by cluster and year. Lines break where a source has no data."
+#| fig-alt: "Three line charts, one per outcome, with one line per cluster from 2016 to 2023; lines have gaps in years without data."
+outs = ["infant_mortality", "saber11_mean", "dropout_rate"]
+years = np.arange(2016, 2024)
 fig, axes = plt.subplots(1, 3, figsize=(10, 3.4))
-for ax, (col, title) in zip(axes, titles.items()):
-    o = outcomes[outcomes["outcome"] == col]
-    for c, g in o.groupby("cluster"):
-        g = g.set_index("year").reindex(range(2016, 2024))
-        ax.plot(g.index, g["median"], marker="o", color=colors[c], label=names[c])
-    ax.set_title(title, fontsize=10, loc="left")
-    ax.set_xticks([2016, 2019, 2022])
-fig.legend(*axes[0].get_legend_handles_labels(), loc="lower center", ncol=2, frameon=False,
-           bbox_to_anchor=(0.5, -0.12), fontsize=8)
-plt.tight_layout()
-plt.show()
+for ax, o in zip(axes, outs):
+    for c, g in oy[oy["outcome"] == o].groupby("cluster"):
+        s = g.set_index("year")["median"].reindex(years)
+        ax.plot(years, s.values, marker="o", ms=3, color=prof.loc[c, "color"], label=names[c])
+    ax.set_title(o, fontsize=9); ax.tick_params(labelsize=7)
+fig.legend(*axes[0].get_legend_handles_labels(), loc="lower center", ncol=2, fontsize=6)
+plt.tight_layout(rect=(0, 0.14, 1, 1)); plt.show()
 ```
 
-## Correlation ≠ causation
+Infant mortality changes method in 2017 and Saber 11 has no data for 2018 and 2021, so
+year-to-year changes should not be read as real trends.
+
+# Correlation is not causation
 
 ```{python}
-#| label: fig-within
-#| fig-cap: "Median infant mortality by utility-supplied (prestadores) IRCA band within each cluster, 2017–2019 and 2021–2023 pooled; ρ is Spearman's rank correlation, n municipality-years."
-#| fig-alt: "Four small panels, one per cluster, of median infant mortality across IRCA bands; the lines are nearly flat and every rho is close to zero."
-band_order = ["No risk", "Low", "Medium", "High", "Unfit"]
-fig, axes = plt.subplots(1, len(rho), figsize=(10, 3), sharey=True)
-for ax, (c, g) in zip(axes, bins.groupby("cluster")):
-    g = g.set_index("irca_band").reindex(band_order)
-    ax.plot(range(5), g["median"], marker="o", color=colors[c])
-    ax.set_xticks(range(5), ["N", "L", "M", "H", "U"])
-    ax.set_title(f"Cluster {c}", fontsize=10, loc="left")
-    ax.text(0.04, 0.06, f"ρ = {rho.loc[c, 'spearman_rho']:+.2f}\nn = {rho.loc[c, 'n']:,}",
-            transform=ax.transAxes, fontsize=9)
-axes[0].set_ylabel("Infant mortality per 1,000")
-plt.tight_layout()
-plt.show()
+#| label: fig-causation
+#| fig-cap: "Median infant mortality (per 1,000 live births) by IRCA band (utility-supplied) within each cluster. Bars are medians; the Spearman rho between IRCA and infant mortality is in the legend."
+#| fig-alt: "Grouped bar chart: for each IRCA band from no risk to unfit, four bars show median infant mortality in each cluster; the bars are similar in height within each cluster."
+order = ["No risk", "Low", "Medium", "High", "Unfit"]
+piv = bins.pivot(index="irca_band", columns="cluster", values="median").reindex(order)
+fig, ax = plt.subplots(figsize=(8, 3.8))
+w = 0.2
+for k, c in enumerate(piv.columns):
+    ax.bar(np.arange(len(order)) + (k - 1.5) * w, piv[c].values, w, color=prof.loc[c, "color"],
+           label=f"{names[c]} (rho = {rho.loc[c, 'spearman_rho']:.2f}, n = {rho.loc[c, 'n']})")
+ax.set_xticks(range(len(order))); ax.set_xticklabels(order)
+ax.set_xlabel("IRCA band (utility-supplied)"); ax.set_ylabel("median infant mortality")
+ax.legend(fontsize=6); plt.tight_layout(); plt.show()
 ```
 
-Within each kind, infant mortality hardly changes with the IRCA band (ρ between
-`{python} rho_lo` and `{python} rho_hi`). That does not show water is harmless, nor that it
-is harmful: poverty, rurality, access to health services and reporting quality affect both
-water and recorded deaths, and infant mortality is municipal while IRCA is zonal (an
-ecological comparison). These differences are descriptive and do not establish causal
-effects of water quality.
+Within each cluster the association between IRCA and infant mortality is weak
+(rho from `{python} f"{rho['spearman_rho'].min():.2f}"` to `{python} f"{rho['spearman_rho'].max():.2f}"`).
+This is descriptive and does not establish a causal effect of water safety. Poverty, health
+services, altitude and rurality may confound it.
 
-## Limits
+# Limits
 
-- IRCA is utility-supplied only; self-supplied rural systems, with higher risk, are not in
-  it, and rural IRCA is missing in about half of rural rows.
-- Infant mortality changes method in 2017; small municipalities have noisy rates, and a
-  blank may mean no recorded deaths.
-- Saber 11 covers students who sat the exam, by school location; 2018 and 2021 are missing.
-- Silhouette `{python} f"{summary['silhouette_at_k']:.2f}"`: the kinds overlap and summarise
-  a continuum.
+- Utility-supplied IRCA only; rural zones are often unsampled.
+- Infant mortality changes method in 2017 and is volatile in small municipalities.
+- Saber 11 covers 2014-2017, 2019, 2020 and 2022; school location is not residence.
+- Missing coverage was imputed (year x zone median) in `{python} S['rows_with_any_imputed']` rows.
+- Clusters are descriptive groupings, not causal categories.
 
-## Sources
+# Sources
 
-- INS, *Calidad del Agua para Consumo Humano en Colombia*, datos.gov.co `nxt2-39c3`
-  (CC BY-SA 4.0), utility-supplied (prestadores) IRCA.
-- Resolución 2115 de 2007, art. 15 (IRCA risk bands).
-- DNP TerriData (coverage, IPM, MDM, SGP, infant mortality; Superservicios, DANE,
-  DNP-SICODIS, MinSalud).
-- DANE DIVIPOLA `gdxc-w37w`, population projections and MGN 2023.
-- ICFES Saber 11 (`kgxf-xxbe`, `rnvb-vnyh`); MEN dropout (`nudc-7mev`).
-- CHIRPS v3.0 rainfall (Funk et al. 2026, doi:10.1038/s41597-026-07096-4); NASA SRTM GL3
-  via OpenTopoData (doi:10.5067/MEaSUREs/SRTM/SRTMGL3.003).
-
-Full details, licences and retrieval dates: `data/README.md`.
+- INS, "Calidad del Agua para Consumo Humano en Colombia" (IRCA), datos.gov.co `nxt2-39c3`.
+- DNP, TerriData (coverage, rurality, IPM, MDM, IDF, SGP, infant mortality), <https://terridata.dnp.gov.co>.
+- DANE, DIVIPOLA `gdxc-w37w` and population projections, <https://www.dane.gov.co>.
+- CHIRPS v3.0 rainfall, <https://doi.org/10.15780/G2JQ0P>.
+- NASA SRTM via OpenTopoData, <https://doi.org/10.5067/MEaSUREs/SRTM/SRTMGL3.003>.
+- ICFES Saber 11, datos.gov.co `kgxf-xxbe`, `rnvb-vnyh`; MEN dropout, `nudc-7mev`.
+- Details: `data/README.md`. Resolución 2115 de 2007, art. 15 (IRCA bands).

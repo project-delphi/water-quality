@@ -1,87 +1,84 @@
 ---
-title: "Kinds of municipal zone: water, health and education"
-subtitle: "Briefing for the municipal council · descriptive analysis, 2016–2023"
+title: "Water safety and infant mortality in Colombian municipalities"
+subtitle: "Four kinds of municipal zone, 2016-2023 (descriptive)"
+author: "For the municipal council"
 format:
   revealjs:
-    smaller: true
+    embed-resources: true
+    slide-number: true
   pptx: default
+jupyter: python3
 execute:
   echo: false
+  warning: false
 ---
 
 ```{python}
 import json
-
-import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
-from IPython.display import Markdown
-
-summary = json.load(open("outputs/summary.json"))
-profiles = pd.read_csv("outputs/cluster_profiles.csv").set_index("cluster")
-outcomes = pd.read_csv("outputs/outcomes_by_year.csv")
-names = profiles["name"].to_dict()
-colors = profiles["color"].to_dict()
-features = ["irca", "water_coverage", "sewer_coverage", "ipm", "rural_share", "altitude_m",
-            "rainfall_mm", "mdm", "log_sgp_water_pc"]
-labels = ["IRCA", "Piped water", "Sewer", "Poverty", "Rural share", "Altitude", "Rainfall",
-          "MDM", "log SGP / person"]
+import matplotlib.pyplot as plt
+prof = pd.read_csv("outputs/cluster_profiles.csv").set_index("cluster")
+oy = pd.read_csv("outputs/outcomes_by_year.csv")
+S = json.load(open("outputs/summary.json"))
+names = prof["name"]
 ```
 
 ## The question
 
-- Which **kinds** of municipal zone exist, by drinking-water quality, services and context?
-- How do **infant mortality**, **Saber 11** scores and **school dropout** differ between them?
-- `{python} f"{summary['kept']:,}"` zone-years, `{python} f"{summary['municipalities']:,}"` municipalities, 2016–2023; IRCA is utility-supplied (prestadores)
+How do municipalities group by drinking-water safety and context, and how do infant
+mortality, school results and dropout look in each group?
 
-## The `{python} summary['k']` kinds
+- `{python} f"{S['municipalities']:,}"` municipalities, 2016-2023
+- IRCA = utility-supplied ("prestadores") water-risk index, INS open data
+
+## The four clusters
 
 ```{python}
-t = profiles[["name", "rows", "municipalities", "irca_median"]].rename(
-    columns={"name": "Kind", "rows": "Zone-years", "municipalities": "Municipalities",
-             "irca_median": "Median IRCA"})
-t.index.name = "Cluster"
-Markdown(t.to_markdown())
+#| tbl-cap: "Named clusters: rows, municipalities, share of urban rows and median IRCA (utility-supplied)."
+t = prof[["name", "rows", "municipalities", "urban_row_share", "irca_median"]].copy()
+t["urban_row_share"] = (t["urban_row_share"] * 100).round(0).astype(int).astype(str) + "%"
+t.columns = ["Cluster", "Rows", "Municipalities", "Urban rows", "Median IRCA"]
+t.reset_index(drop=True).to_markdown(index=False)
 ```
 
 ## What sets them apart
 
 ```{python}
-#| fig-alt: "Heatmap of four kinds by nine features from blue (below average) to red (above average)."
-z = profiles[[f"z_{f}" for f in features]].to_numpy()
-fig, ax = plt.subplots(figsize=(9, 3.6))
-im = ax.imshow(z, cmap="RdBu_r", vmin=-1.5, vmax=1.5, aspect="auto")
-ax.set_xticks(range(len(features)), labels, rotation=30, ha="right")
-ax.set_yticks(range(len(profiles)), [f"{c} · {names[c]}" for c in profiles.index])
-for i in range(z.shape[0]):
-    for j in range(z.shape[1]):
-        ax.text(j, i, f"{z[i, j]:+.1f}", ha="center", va="center", fontsize=8)
-fig.colorbar(im, ax=ax, label="z (SD from the year's average)")
-plt.tight_layout()
-plt.show()
+#| fig-cap: "Cluster mean z-scores (within year) of nine profile features; blue below average, red above."
+#| fig-alt: "Heatmap of nine profile features by four named clusters, blue below the yearly average and red above."
+zc = [c for c in prof.columns if c.startswith("z_")]
+M = prof[zc].T; M.index = [c[2:] for c in zc]
+fig, ax = plt.subplots(figsize=(8, 4.2))
+v = np.abs(M.values).max()
+im = ax.imshow(M.values, cmap="RdBu_r", vmin=-v, vmax=v, aspect="auto")
+ax.set_xticks(range(M.shape[1])); ax.set_xticklabels([names[c].replace(", ", ",\n") for c in M.columns], fontsize=7)
+ax.set_yticks(range(M.shape[0])); ax.set_yticklabels(M.index, fontsize=8)
+for i in range(M.shape[0]):
+    for j in range(M.shape[1]):
+        ax.text(j, i, f"{M.values[i, j]:.1f}", ha="center", va="center", fontsize=7)
+fig.colorbar(im, label="mean z-score"); plt.tight_layout(); plt.show()
 ```
 
-## Outcomes by kind
+## Outcomes by cluster
 
 ```{python}
-#| fig-alt: "Three line charts by year of median infant mortality, Saber 11 score and dropout, one line per kind, with gaps in years without data."
-titles = {"infant_mortality": "Infant mortality /1,000", "saber11_mean": "Saber 11 score",
-          "dropout_rate": "Dropout (%)"}
+#| fig-cap: "Median infant mortality, Saber 11 score and dropout by cluster and year; gaps where a source has no data."
+#| fig-alt: "Three line charts of outcomes by year for four clusters, with gaps in missing years."
+years = np.arange(2016, 2024)
 fig, axes = plt.subplots(1, 3, figsize=(10, 3.4))
-for ax, (col, title) in zip(axes, titles.items()):
-    o = outcomes[outcomes["outcome"] == col]
-    for c, g in o.groupby("cluster"):
-        g = g.set_index("year").reindex(range(2016, 2024))
-        ax.plot(g.index, g["median"], marker="o", color=colors[c], label=names[c])
-    ax.set_title(title, fontsize=10, loc="left")
-    ax.set_xticks([2016, 2019, 2022])
-fig.legend(*axes[0].get_legend_handles_labels(), loc="lower center", ncol=2, frameon=False,
-           bbox_to_anchor=(0.5, -0.14), fontsize=8)
-plt.tight_layout()
-plt.show()
+for ax, o in zip(axes, ["infant_mortality", "saber11_mean", "dropout_rate"]):
+    for c, g in oy[oy["outcome"] == o].groupby("cluster"):
+        ax.plot(years, g.set_index("year")["median"].reindex(years).values, marker="o", ms=3,
+                color=prof.loc[c, "color"], label=names[c])
+    ax.set_title(o, fontsize=9); ax.tick_params(labelsize=7)
+fig.legend(*axes[0].get_legend_handles_labels(), loc="lower center", ncol=2, fontsize=6)
+plt.tight_layout(rect=(0, 0.14, 1, 1)); plt.show()
 ```
 
 ## What this does and does not show
 
-- ✅ Where the kinds are, and how outcomes **differ** between them
-- ❌ **Not** a causal effect of water quality: poverty, rurality, health access and reporting differ too
-- ⚠️ IRCA is utility-supplied (prestadores); many rural systems are never sampled
+- Shows: municipalities fall into four water-and-context profiles; outcomes differ by profile
+- Does not show: that water quality causes any outcome
+- Confounders: poverty, health services, altitude, rurality
+- Gaps: infant mortality method changes in 2017; Saber 11 has no 2018 or 2021

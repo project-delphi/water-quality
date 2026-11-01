@@ -1,15 +1,13 @@
 ---
-title: "Colombian municipal water quality"
+title: "Colombian municipal water safety"
 listing:
   contents: posts
-  sort: "date desc"
   type: default
+  sort: "date desc"
 ---
 
-Kinds of municipal zone in Colombia, by drinking-water quality (utility-supplied,
-prestadores IRCA), services and context, and how infant mortality, Saber 11 scores and
-school dropout differ between them, 2016–2023. One analysis, `scripts/analysis.py`, feeds
-every page: [Explore](explore.qmd), [Clusters](clusters.qmd), the [Report](report.qmd) and
-the council [Slides](slides.qmd). All comparisons are descriptive, not causal.
+Descriptive analysis of drinking-water safety (utility-supplied IRCA, INS open data) and
+infant mortality in Colombian municipalities, 2016-2023. Comparisons are descriptive, not causal.
 
-## Posts
+See also the [exploration](explore.qmd), the [clusters page](clusters.qmd), the
+[report](report.qmd) and the [slides](slides.qmd).

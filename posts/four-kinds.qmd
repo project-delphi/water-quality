@@ -1,0 +1,28 @@
+---
+title: "Four kinds of municipal zone"
+date: 2026-11-01
+description: "K-means on water-safety and context features finds four profiles."
+jupyter: python3
+execute:
+  echo: false
+---
+
+```{python}
+import json
+import pandas as pd
+S = json.load(open("outputs/summary.json"))
+prof = pd.read_csv("outputs/cluster_profiles.csv").set_index("cluster")
+```
+
+K-means on nine profile features (utility-supplied IRCA, coverage, poverty, rurality,
+altitude, rainfall, performance, water transfers) finds **`{python} S['k']` kinds** of
+municipal zone among `{python} f"{S['kept']:,}"` municipality-zone-year rows, 2016-2023:
+
+```{python}
+from IPython.display import Markdown
+Markdown("\n".join(f"- {r['name']} (median IRCA {r['irca_median']}, {r['municipalities']} municipalities)" for _, r in prof.iterrows()))
+```
+
+Outcomes (infant mortality, Saber 11, dropout) did not enter the clustering. They differ
+across clusters, but this is descriptive and does not establish a causal effect of water
+quality. Details: [clusters](../clusters.qmd) and the [report](../report.qmd).
