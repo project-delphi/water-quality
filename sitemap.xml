@@ -1,31 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://project-delphi.github.io/water-quality/posts/four-kinds/index.html</loc>
-    <lastmod>2026-11-01T11:04:15.763Z</lastmod>
+    <loc>https://project-delphi.github.io/water-quality/visuals.html</loc>
+    <lastmod>2026-11-05T16:55:46.954Z</lastmod>
   </url>
   <url>
     <loc>https://project-delphi.github.io/water-quality/dashboard.html</loc>
-    <lastmod>2026-11-01T11:04:15.740Z</lastmod>
+    <lastmod>2026-11-05T16:41:00.278Z</lastmod>
   </url>
   <url>
     <loc>https://project-delphi.github.io/water-quality/report.html</loc>
-    <lastmod>2026-11-01T11:04:15.764Z</lastmod>
+    <lastmod>2026-11-05T16:41:00.291Z</lastmod>
   </url>
   <url>
     <loc>https://project-delphi.github.io/water-quality/explore.html</loc>
-    <lastmod>2026-11-01T11:04:15.758Z</lastmod>
+    <lastmod>2026-11-05T16:41:00.290Z</lastmod>
   </url>
   <url>
     <loc>https://project-delphi.github.io/water-quality/index.html</loc>
-    <lastmod>2026-11-01T11:04:15.763Z</lastmod>
+    <lastmod>2026-11-05T16:41:00.291Z</lastmod>
+  </url>
+  <url>
+    <loc>https://project-delphi.github.io/water-quality/posts/four-kinds.html</loc>
+    <lastmod>2026-11-05T16:41:00.291Z</lastmod>
   </url>
   <url>
     <loc>https://project-delphi.github.io/water-quality/clusters.html</loc>
-    <lastmod>2026-11-01T11:04:15.734Z</lastmod>
+    <lastmod>2026-11-05T16:41:00.278Z</lastmod>
   </url>
   <url>
     <loc>https://project-delphi.github.io/water-quality/slides.html</loc>
-    <lastmod>2026-11-01T11:04:15.768Z</lastmod>
+    <lastmod>2026-11-05T16:41:00.292Z</lastmod>
   </url>
 </urlset>
