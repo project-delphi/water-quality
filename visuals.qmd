@@ -1,0 +1,95 @@
+---
+pagetitle: "Visuals · Tunja"
+page-layout: custom
+toc: false
+include-in-header:
+  text: |
+    <link rel="stylesheet" href="visuals/tunja.css">
+    <script type="importmap">
+    { "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    } }
+    </script>
+---
+
+```{=html}
+<div id="tj">
+
+<section id="hero">
+  <canvas id="stage" aria-label="3D relief map of Boyacá, Colombia, coloured by IRCA (utility-supplied, INS open data)"></canvas>
+  <div id="loading">Loading Boyacá…</div>
+
+  <div id="intro">
+    <p class="kicker">Tunja · Boyacá · Colombia</p>
+    <h1>Rain falls on every town.<br>Safe water doesn't reach every tap.</h1>
+    <p class="lede">Each block is a municipality of Boyacá, raised by the altitude of its head town (SRTM) and
+      coloured by its <b>IRCA (utility-supplied, INS open data)</b>, the official drinking-water risk score.
+      Drops fall in proportion to each municipality's annual rainfall. Drag to turn the map, click a block, scrub the years.</p>
+    <p class="hint"><a href="#story">Scroll for the Tunja story ↓</a></p>
+  </div>
+
+  <aside id="panel" aria-live="polite"></aside>
+
+  <div id="controls">
+    <div class="ctl">
+      <button id="play" aria-label="Play years">▶</button>
+      <input id="year" type="range" min="0" max="13" step="1" value="13" aria-label="Year">
+      <span id="yearlabel">2023</span>
+    </div>
+    <div class="ctl seg" id="zoneseg" role="group" aria-label="Zone">
+      <button data-zone="urban" class="on">Urban</button><button data-zone="rural">Rural</button>
+    </div>
+    <div id="legend"></div>
+  </div>
+  <div id="tooltip"></div>
+  <div id="tunjalabel">Tunja</div>
+</section>
+
+<main id="story">
+  <article class="wrap">
+
+    <h2>What the colour means</h2>
+    <p>IRCA (<i>Índice de Riesgo de la Calidad del Agua para consumo humano</i>) is a 0–100 risk score built from
+      the year's surveillance samples. <b>0 is no risk; 100 is unfit for consumption.</b> Resolución 2115 de 2007
+      sorts it into five bands. The numbers on this page are <b>IRCA (utility-supplied, INS open data)</b>:
+      they come from the water providers' (<i>prestadores</i>) reports, not from INS's own national total.</p>
+    <div id="bandbar"></div>
+
+    <h2>Tunja: one city, two kinds of tap</h2>
+    <p id="tunjaLead"></p>
+    <figure><div id="chartTunja" class="chart"></div>
+      <figcaption>Tunja, IRCA (utility-supplied, INS open data), urban and rural zones, 2010–2023. Shaded bands are the Resolución 2115 risk bands.</figcaption></figure>
+    <p class="note" id="tunjaNote"></p>
+
+    <h2>Is Tunja typical for Boyacá?</h2>
+    <p id="bandLead"></p>
+    <div class="ctl seg inline" id="zoneseg2" role="group" aria-label="Zone for distribution chart">
+      <button data-zone="urban" class="on">Urban</button><button data-zone="rural">Rural</button>
+    </div>
+    <figure><div id="chartBands" class="chart"></div>
+      <figcaption>Share of Boyacá's 123 municipalities in each IRCA (utility-supplied, INS open data) band, by year. Grey is <b>no reported IRCA</b>, not "safe".</figcaption></figure>
+
+    <h2>Piped water is not the same as safe water</h2>
+    <p>Coverage counts connections to an aqueduct. IRCA scores what comes out of it. The two answer different questions,
+      and Tunja shows why they must be read side by side.</p>
+    <figure><div id="chartCover" class="chart"></div>
+      <figcaption>Tunja, aqueduct and sewerage coverage for the whole municipality (REC, Superservicios via DNP TerriData). Department capitals have no urban/rural split. Nothing here is filled.</figcaption></figure>
+    <p class="note" id="coverNote"></p>
+
+    <h2>How to read this without fooling yourself</h2>
+    <ul class="caveats">
+      <li><b>Descriptive, not causal.</b> Nothing here shows that water quality changes any outcome. Altitude, poverty (IPM, census 2018), rurality, municipal finances and which systems get sampled all move together with IRCA and could explain patterns on their own.</li>
+      <li><b>Rural IRCA is missing far more often</b> than urban IRCA, and the sampled systems can change from year to year. A rural drop or rise may reflect which systems were sampled, not the water itself.</li>
+      <li><b>Utility-supplied.</b> This IRCA comes from <i>prestadores</i> reports in the INS open table (<code>nxt2-39c3</code>).</li>
+      <li><b>Relief is stylised.</b> Block height is SRTM elevation at the head-town coordinates (derived, not an official DANE altitude), applied to the whole municipality.</li>
+      <li><b>Rainfall</b> is CHIRPS v3.0 annual precipitation averaged over each municipal polygon. Drop counts are a visual proxy for rainfall × area, not a measure of water supply.</li>
+      <li><b>Infant mortality</b> (shown in the side panel only) changes method in 2017 and is volatile for small municipalities.</li>
+    </ul>
+    <p class="src">Sources: INS IRCA (datos.gov.co <code>nxt2-39c3</code>); DNP TerriData; DANE DIVIPOLA, projections and MGN 2023 boundaries; CHIRPS v3.0; SRTM via OpenTopoData. Derived table: <code>visuals/boyaca.json</code>, built by <code>scripts/visuals_data.py</code> from <code>data/</code>. 3D with <a href="https://threejs.org">three.js</a>.</p>
+  </article>
+</main>
+
+</div>
+<script type="module" src="visuals/tunja.js"></script>
+```

@@ -1,7 +1,9 @@
 project:
   type: website
   execute-dir: project
-  pre-render: uv run python scripts/analysis.py
+  pre-render:
+    - uv run python scripts/analysis.py
+    - uv run python scripts/visuals_data.py
   render:
     - index.qmd
     - posts/four-kinds.qmd
@@ -11,6 +13,11 @@ project:
     - slides.qmd
     - dashboard.qmd
     - whitepaper.qmd
+    - visuals.qmd
+  resources:
+    - visuals/boyaca.json
+    - visuals/tunja.js
+    - visuals/tunja.css
 
 execute:
   freeze: false
@@ -32,6 +39,8 @@ website:
         text: Slides
       - href: dashboard.qmd
         text: Dashboard
+      - href: visuals.qmd
+        text: Visuals · Tunja
       - text: Downloads
         menu:
           - href: report.docx
