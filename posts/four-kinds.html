@@ -197,7 +197,7 @@ ul.task-list li input[type="checkbox"] {
 
 
 <p>K-means on nine profile features (utility-supplied IRCA, coverage, poverty, rurality, altitude, rainfall, performance, water transfers) finds <strong>4 kinds</strong> of municipal zone among 11,235 municipality-zone-year rows, 2016-2023:</p>
-<div id="4e53d2f5" class="cell" data-execution_count="2">
+<div id="971ee014" class="cell" data-execution_count="2">
 <div class="cell-output cell-output-display cell-output-markdown" data-execution_count="2">
 <ul>
 <li>Cities and large towns, no-risk water (median IRCA 1.6, 284 municipalities)</li>
@@ -285,7 +285,7 @@ ul.task-list li input[type="checkbox"] {
     }
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);
-        var filterRegex = new RegExp("https:\/\/project-delphi\.github\.io\/water-quality\/");
+        var filterRegex = new RegExp('/' + window.location.host + '/');
       var isInternal = (href) => {
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }

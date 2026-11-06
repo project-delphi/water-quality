@@ -1012,7 +1012,7 @@ For the municipal council
 </section>
 <section id="the-four-clusters" class="slide level2">
 <h2>The four clusters</h2>
-<div id="d70850e3" class="cell" data-tbl-cap="Named clusters: rows, municipalities, share of urban rows and median IRCA (utility-supplied)." data-execution_count="2">
+<div id="794ac7b5" class="cell" data-tbl-cap="Named clusters: rows, municipalities, share of urban rows and median IRCA (utility-supplied)." data-execution_count="2">
 <div class="cell-output cell-output-display" data-execution_count="2">
 <pre><code>&#39;| Cluster                               |   Rows |   Municipalities | Urban rows   |   Median IRCA |\n|:--------------------------------------|-------:|-----------------:|:-------------|--------------:|\n| Cities and large towns, no-risk water |   2271 |              284 | 67%          |           1.6 |\n| Highland towns, no-risk water         |   3750 |              558 | 95%          |           4   |\n| Lowland towns, low-risk water         |   2451 |              479 | 90%          |           9.2 |\n| Rural, low-coverage, high-risk water  |   2763 |              729 | 9%           |          35.2 |&#39;</code></pre>
 </div>
@@ -1020,7 +1020,7 @@ For the municipal council
 </section>
 <section id="what-sets-them-apart" class="slide level2">
 <h2>What sets them apart</h2>
-<div id="192bde12" class="cell" data-execution_count="3">
+<div id="97de6bd3" class="cell" data-execution_count="3">
 <div class="cell-output cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure>
@@ -1033,7 +1033,7 @@ For the municipal council
 </section>
 <section id="outcomes-by-cluster" class="slide level2">
 <h2>Outcomes by cluster</h2>
-<div id="3bb0f1b3" class="cell" data-execution_count="4">
+<div id="054c0f81" class="cell" data-execution_count="4">
 <div class="cell-output cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure>
@@ -2301,7 +2301,7 @@ window.QuartoSupport = function () {
         }
           var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
           var mailtoRegex = new RegExp(/^mailto:/);
-            var filterRegex = new RegExp("https:\/\/project-delphi\.github\.io\/water-quality\/");
+            var filterRegex = new RegExp('/' + window.location.host + '/');
           var isInternal = (href) => {
               return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
           }
